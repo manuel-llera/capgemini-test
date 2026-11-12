@@ -1,5 +1,7 @@
 package com.capgemini.test.code.application;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.capgemini.test.code.application.port.DniValidator;
@@ -7,9 +9,12 @@ import com.capgemini.test.code.application.port.NotificationPort;
 import com.capgemini.test.code.application.port.UserRepository;
 import com.capgemini.test.code.domain.User;
 import com.capgemini.test.code.domain.exception.DuplicateEmailException;
+import com.capgemini.test.code.domain.exception.ExternalServiceException;
 
 @Service
 public class DefaultCreateUserUseCase implements CreateUserUseCase {
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCreateUserUseCase.class);
+
   private final UserRepository userRepository;
   private final DniValidator dniValidator;
   private final NotificationPort notificationPort;
@@ -40,7 +45,19 @@ public class DefaultCreateUserUseCase implements CreateUserUseCase {
 
     dniValidator.validate(user.dni());
     User savedUser = userRepository.save(user);
-    notificationPort.notifyUser(savedUser);
+    try {
+      notificationPort.notifyUser(savedUser);
+    } catch (ExternalServiceException exception) {
+      boolean persisted =
+          userRepository.findByIdAndRoomId(savedUser.id(), roomId).isPresent();
+      if (!persisted) {
+        throw exception;
+      }
+      LOGGER.warn(
+          "Notification failed for persisted user id {}; returning the created user id",
+          savedUser.id(),
+          exception);
+    }
     return savedUser.id();
   }
 }
