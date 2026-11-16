@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -28,6 +29,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 abstract class AcceptanceTestSupport {
+  private static final URI MOCKSERVER_CLEAR_URI =
+      URI.create("http://localhost:1080/mockserver/clear?type=LOG");
   private static final URI MOCKSERVER_RETRIEVE_URI =
       URI.create("http://localhost:1080/mockserver/retrieve?type=REQUESTS");
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
@@ -38,6 +41,19 @@ abstract class AcceptanceTestSupport {
   @Autowired private ObjectMapper objectMapper;
 
   private final Set<String> emailsCreatedByTest = new HashSet<>();
+
+  @BeforeEach
+  void clearMockServerRequestLog() throws IOException, InterruptedException {
+    HttpRequest request =
+        HttpRequest.newBuilder(MOCKSERVER_CLEAR_URI)
+            .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .PUT(HttpRequest.BodyPublishers.ofString("{}"))
+            .build();
+    HttpResponse<String> response =
+        HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+
+    assertThat(response.statusCode()).isEqualTo(200);
+  }
 
   protected UserData uniqueUser(String role) {
     String unique = UUID.randomUUID().toString().replace("-", "");
