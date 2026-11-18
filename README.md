@@ -13,6 +13,27 @@ La fuente de requisitos original se conserva en [README-prueba-tecnica.md](READM
 
 ---
 
+## 1.1 Uso responsable de inteligencia artificial
+
+Durante el desarrollo y la documentación del proyecto se ha utilizado inteligencia artificial como herramienta de apoyo para:
+
+- Analizar el enunciado y comprobar la cobertura de requisitos.
+- Sugerir estructuras de código y pruebas.
+- Identificar inconsistencias y oportunidades de mejora.
+- Proponer documentación técnica y redactar explicaciones.
+- Revisar decisiones técnicas, criterios de ejecución y trazabilidad.
+
+La inteligencia artificial se considera una herramienta de productividad que ha llegado para integrarse en el ciclo de desarrollo, no como sustituto de la responsabilidad profesional. La arquitectura, las decisiones técnicas, las modificaciones del repositorio y la documentación deben ser revisadas y validadas por personas antes de aprobar una entrega.
+
+Por este motivo:
+
+- Todo el código generado o asistido por IA ha sido integrado, comprobado y validado mediante las pruebas disponibles.
+- Las decisiones técnicas requieren criterio humano sobre el contexto, los requisitos y las restricciones del proyecto.
+- Las respuestas externas, resultados de ejecución y métricas deben verificarse antes de presentarse como evidencia.
+- El uso de IA no elimina la necesidad de revisión de código, control de calidad ni responsabilidad sobre el producto final.
+
+---
+
 ## 2. Resumen ejecutivo
 
 La solución implementa una API REST con Spring Boot 3.2 y Java 17 para crear y consultar usuarios de la sala 1.
@@ -157,7 +178,17 @@ Coste aceptado:
 | Pruebas Java | JUnit 5, Spring Boot Test, AssertJ |
 | Pruebas Failsafe | Maven Failsafe |
 | Pruebas de carga HTTP Java | Java HTTP Client y pool de hilos |
-| Pruebas de carga Node.js | Node.js 18 o superior |
+
+### 5.1 Decisión de consistencia tecnológica
+
+Java y Maven son la tecnología oficial para construir, probar y validar toda la entrega. No es necesario ninguna tecnología adicional para:
+
+- Ejecutar las pruebas unitarias.
+- Ejecutar las pruebas de integración.
+- Ejecutar las pruebas de aceptación.
+- Ejecutar la prueba masiva Java de capacidad.
+- Medir latencias POST/GET.
+- Generar informes Maven.
 
 ---
 
@@ -244,7 +275,6 @@ Otros resultados:
 | Docker Desktop o Docker Engine | Levantar PostgreSQL y MockServer | `docker info` |
 | Docker Compose | Orquestar contenedores locales | `docker compose version` |
 | Git | Obtener y versionar el repositorio | `git --version` |
-| Node.js 18+ | Ejecutar scripts opcionales de carga | `node --version` |
 
 ### 7.2 Puertos y bases de datos
 
@@ -386,7 +416,7 @@ Contratos disponibles:
 | Unitarias | Reglas aisladas y comportamiento de adaptadores | JUnit/Spring Test |
 | Integración | Contratos reales con PostgreSQL, Flyway y MockServer | `UserApiIntegrationTest` |
 | Aceptación | Flujos HTTP completos desde el cliente | Failsafe `*IT` |
-| Carga | Concurrencia y volúmenes escalonados | Java HTTP Client/Node.js |
+| Carga | Concurrencia y volúmenes escalonados | Java HTTP Client y Maven |
 
 ### 10.2 Pruebas unitarias
 
@@ -487,41 +517,13 @@ Salvaguardas:
 
 ---
 
-## 12. Pruebas de carga adicionales
+## 12. Interpretación y alcance de las pruebas Java de carga
 
-### 12.1 Lecturas concurrentes
+La validación oficial de carga puede realizarse con las clases Java existentes y Maven, sin herramientas adicionales.
 
-`load-tests/user-read.mjs` ejecuta `GET /users/{id}` con:
+La prueba masiva genera mediciones aproximadas de latencia para POST y GET. Las verificaciones de resultados pueden ampliarse con JUnit, la API HTTP de Java y MockServer. Si se necesitan pruebas concurrentes adicionales, pueden implementarse como pruebas JUnit o clases Java dentro del mismo proyecto.
 
-- 1 trabajador durante 30 segundos.
-- 5 trabajadores durante 30 segundos.
-- 10 trabajadores durante 30 segundos.
-- 20 trabajadores durante 30 segundos.
-- 5 segundos de calentamiento.
-
-Publica solicitudes, fallos, solicitudes por segundo y percentiles p50/p95/p99.
-
-```powershell
-$env:USER_ID="1"
-node load-tests/user-read.mjs
-```
-
-El script solo permite URLs locales y requiere que el usuario identificado exista.
-
-### 12.2 Flujos POST/GET secuenciales
-
-`load-tests/user-create-read.mjs` crea hasta 100 usuarios reales:
-
-```powershell
-$env:ALLOW_TEST_WRITES="yes"
-$env:ITERATIONS="10"
-$env:PAUSE_MS="100"
-node load-tests/user-create-read.mjs
-```
-
-Mide latencias separadas para POST y GET e imprime la sentencia SQL de limpieza. No debe ejecutarse contra una base productiva.
-
-### 12.3 Interpretación de flujos
+### 12.1 Interpretación de flujos
 
 Un flujo completo incluye:
 
@@ -644,7 +646,7 @@ Responsabilidades:
 | Superadmin por SMS | Estrategia `SuperadminSmsNotificationStrategy` | Unitarias/aceptación |
 | GET por sala | `DefaultGetUserUseCase` | Integración/aceptación |
 | Escalabilidad | Arquitectura desacoplada | Revisión arquitectónica |
-| Capacidad | Pruebas escalonadas | Carga Java/Node |
+| Capacidad | Pruebas escalonadas | Carga Java |
 
 ---
 
