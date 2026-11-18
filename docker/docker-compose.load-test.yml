@@ -1,0 +1,5 @@
+services:
+  mockserver:
+    environment:
+      MOCKSERVER_LOG_LEVEL: WARN
+      MOCKSERVER_MAX_LOG_ENTRIES: 16384
